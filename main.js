@@ -2,6 +2,21 @@ const http = require('http');
 const fs = require('fs');
 const url = require('url');
 
+function templateHTMl(_title, _list, _body){
+  return `<!doctype html>
+  <html>
+  <head>
+    <title>WEB1 - ${_title}</title>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <h1><a href="/">WEB</a></h1>
+    ${_list}
+    ${_body}
+  </body>
+  </html>
+  `
+}
 
 const app = http.createServer(function(request,response){
   const _url = request.url;
@@ -22,51 +37,29 @@ const app = http.createServer(function(request,response){
         //   </ul>`
 
     if(pathname === '/'){    //경로가 루트라면
+
       if(queryData.get('id')===null){ //id값이 없다면 
         
           let title = 'Welcome';
           var description = 'Hello, Node.js';
                 //let 쓰면 Identifier 'description' has already been declared 에러 뜸
-          
-          const template = `<!doctype html>
-          <html>
-          <head>
-          <title>WEB1 - ${title}</title>
-          <meta charset="utf-8">
-          </head>
-          <body>
-          <h1><a href="/">WEB</a></h1>
-          ${list}
-          <h2>${title}</h2>
-          <p>${description}</p>
-          </body>
-          </html>
-          `;
+          const body = `<h2>${title}</h2><p>${description}</p>`;
+          const template = templateHTMl(title, list, body);
+
           response.writeHead(200);
           response.end(template);
         
       } else {
           fs.readFile(`data/${queryData.get('id')}`,'utf-8',function(err,description){
             let title = queryData.get('id');
-            const template = `<!doctype html>
-            <html>
-            <head>
-              <title>WEB1 - ${title}</title>
-              <meta charset="utf-8">
-            </head>
-            <body>
-              <h1><a href="/">WEB</a></h1>
-              ${list}
-              <h2>${title}</h2>
-              <p>${description}</p>
-            </body>
-            </html>
-            `;
+            const body = `<h2>${title}</h2><p>${description}</p>`;
+            const template = templateHTMl(title, list, body);
+            
             response.writeHead(200);
             response.end(template);
           })
       }
-      
+
     } else{
       response.writeHead(404); 
       response.end("Not found");
