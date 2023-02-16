@@ -41,7 +41,7 @@ const app = http.createServer(function(request,response){
     if(queryData.get('id')===null){ //id값이 없다면 
       
       fs.readdir('./data', function(error,filelist){
-        let title = 'Welcome!';
+        const title = 'Welcome!';
         var description = 'Hello, Node.js';
             //let 쓰면 Identifier 'description' has already been declared 에러 뜸
         const list = templateList(filelist);
@@ -52,7 +52,7 @@ const app = http.createServer(function(request,response){
     } else { //경로가 있다면
       fs.readdir('./data',function(error,filelist){
         fs.readFile(`data/${queryData.get('id')}`,'utf-8',function(err,description){
-          let title = queryData.get('id');
+          const title = queryData.get('id');
           var list = templateList(filelist);
           const template = templateHTML(title, list, `<h2>${title}</h2>${description}`,`<a href = "/create">create</a> <a href = "/update?id=${title}">update</a>`);
           response.writeHead(200);
@@ -66,7 +66,7 @@ const app = http.createServer(function(request,response){
         let title = 'WEB - create';
         const list = templateList(filelist);
         const template = templateHTML(title, list,
-          `<form action="http://localhost:3000/create_process" method="post">
+          `<form action="/create_process" method="post">
           <p><input type="text" name="title" placeholder="title"></p>
           <p>
               <textarea name="description" placeholder ="description"></textarea>
@@ -91,8 +91,7 @@ const app = http.createServer(function(request,response){
       var post = qs.parse(body);
       var title = new URLSearchParams(body).get('title');
       var description = new URLSearchParams(body).get('description');
-      fs.writeFile(`data/${title}`,description,'utf8', function(err){
-        
+      fs.writeFile(`data/${title}`,description,'utf8', function(err){        
         //redirection
         response.writeHead(302,{Location:`/?id=${title}`});
         response.end();
@@ -100,7 +99,58 @@ const app = http.createServer(function(request,response){
       
     });
 
+    //update
+  }else if (pathname === '/update'){
+    fs.readdir('./data',function(error,filelist){
+      fs.readFile(`data/${queryData.get('id')}`,'utf-8',function(err,description){
+        const title = queryData.get('id');
+        var list = templateList(filelist);
+        const template = templateHTML(title, list, 
+          `
+          <form action="/update_process" method="post">
+          <input type="hidden" name="id" value="${title}">
+          <p><input type="text" name="title" placeholder="title" value="${title}"></p>
+          <p>
+              <textarea name="description" placeholder ="description">${description}</textarea>
+          </p>
+          <p>
+              <input type="submit">
+          </p>
+          </form>
+
+          `          
+          ,
+
+          `<a href = "/create">create</a> <a href = "/update?id=${title}">update</a>`
+          );
+        response.writeHead(200);
+        response.end(template);
+      });
+    })
     
+  }else if (pathname === '/update_process'){
+    var body = '';
+    request.on('data',function(data){
+      body = body + data;
+    });
+
+    request.on('end',function(){
+      var post = qs.parse(body);
+      var id = post.id;
+      var title = new URLSearchParams(body).get('title');
+      var description = new URLSearchParams(body).get('description');
+      fs.rename(`data/${id}`,`data/${title}`,function(err){ 
+           
+        fs.writeFile(`data/${title}`,description,'utf8', function(err){        
+          //redirection
+          response.writeHead(302,{Location:`/?id=${title}`});
+          response.end();   
+      
+        });       
+             
+      });
+    });
+
   }else{
     response.writeHead(404); 
     response.end("Not found");
