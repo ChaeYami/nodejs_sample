@@ -54,7 +54,11 @@ const app = http.createServer(function(request,response){
         fs.readFile(`data/${queryData.get('id')}`,'utf-8',function(err,description){
           const title = queryData.get('id');
           var list = templateList(filelist);
-          const template = templateHTML(title, list, `<h2>${title}</h2>${description}`,`<a href = "/create">create</a> <a href = "/update?id=${title}">update</a>`);
+          const template = templateHTML(title, list, `<h2>${title}</h2>${description}`,
+          `<a href = "/create">create</a>
+           <a href = "/update?id=${title}">update</a>
+           `
+           );
           response.writeHead(200);
           response.end(template);
         });
